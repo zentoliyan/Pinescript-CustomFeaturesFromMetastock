@@ -1,1 +1,32 @@
+//@version=5
+indicator("OTT - Optimized Trend Tracker", overlay=true)
 
+source_ott  = input.source(close)
+length_ott  = input.int(30,    'OTT Period',  minval=1)
+percent_ott = input.float(7.0, 'OTT Percent', step=0.1, minval=0)
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OTT(source, length, percent) =>
+    MAVG = f_var(source, length)
+    fark = MAVG * percent * 0.01
+    longStop = MAVG - fark
+    longStopPrev = nz(longStop[1], longStop)
+    longStop := MAVG > longStopPrev ? math.max(longStop, longStopPrev) : longStop
+    shortStop = MAVG + fark
+    shortStopPrev = nz(shortStop[1], shortStop)
+    shortStop := MAVG < shortStopPrev ? math.min(shortStop, shortStopPrev) : shortStop
+    dir = 1
+    dir := nz(dir[1], dir)
+    dir := dir == -1 and MAVG > shortStopPrev ? 1 : dir == 1 and MAVG < longStopPrev ? -1 : dir
+    MT = dir == 1 ? longStop : shortStop
+    OTT = MAVG > MT ? MT * (200 + percent) / 200 : MT * (200 - percent) / 200
+    out = nz(OTT[2])
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ott = OTT(source_ott , length_ott , percent_ott)
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+plot(ott)
