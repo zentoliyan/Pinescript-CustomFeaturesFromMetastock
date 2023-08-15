@@ -1,1 +1,22 @@
+//@version=5
+indicator("VAR - Variable Moving Average", overlay=true)
 
+source = input.source(close)
+len    = input.int(9)
+
+//
+f_var(data, u) =>
+    x = ta.sma(data, u)
+    a = 9
+    b = data > data[1] ? data - data[1] : 0
+    c = data < data[1] ? data[1] - data : 0
+    d = math.sum(b, a)
+    e = math.sum(c, a)
+    f = nz((d - e) / (d + e))
+    g = math.abs(f)
+    k = 2 / (u + 1)
+    r = 0.0
+    r := u == 1 ? data : na(r[1]) ? x : g * k * (data - nz(r[1])) + nz(r[1])
+//
+
+plot(f_var(source, len), title="VAR")
