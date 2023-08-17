@@ -1,0 +1,25 @@
+//@version=5
+indicator("MOST Indicator", shorttitle="MOST", overlay=true)
+
+period1 = input(14, title="Periyot")
+float percent = input(0.8, title="Yüzde")
+
+avg0 = ta.ema(close, period1)
+
+avg1 = avg0 - (avg0 * percent / 100)
+avg2 = avg0 + (avg0 * percent / 100)
+
+var float line1 = na
+var float line2 = na
+
+line1 := na(line1[1]) ? avg1 : (avg0 < line1[1] ? avg1 : (avg1 > line1[1] ? avg1 : line1[1]))
+line2 := na(line2[1]) ? avg2 : (avg0 > line2[1] ? avg2 : (avg2 < line2[1] ? avg2 : line2[1]))
+
+cond1 = ta.crossover(avg0, line2[1])
+cond2 = ta.crossunder(line1[1], avg0)
+
+s1 = ta.barssince(cond1) < ta.barssince(cond2)
+s2 = s1 ? line1 : line2
+
+plot(s2, "MOST", color=color.yellow)
+plot(avg0, "Support", color=color.white)
